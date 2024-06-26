@@ -1,7 +1,4 @@
-// This file contains the main logic for the CLI application.
-// The Runner function is the entry point for the CLI application.
-// It is called when the CLI application is executed.
-
+// The gomapcli package contains the main logic for the CLI application.
 package gomapcli
 
 import (
