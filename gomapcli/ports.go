@@ -66,7 +66,8 @@ func SendICMPRequest(target string, timeout time.Duration) (bool, error) {
 		return true, nil // Success, received echo reply
 	}
 
-	return false, fmt.Errorf("host is down") // Failure, did not receive echo reply
+	fmt.Println("Host did not reply to ICMP")
+	return false, nil // Failure, did not receive echo reply
 }
 
 // ParseTarget parses the target string and returns the IP address in string format
