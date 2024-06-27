@@ -8,6 +8,9 @@
 *.so
 *.dylib
 
+# Docker specific
+.dockerignore
+
 # Test binary, built with `go test -c`
 *.test
 
