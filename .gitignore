@@ -17,6 +17,9 @@
 # Ignore the built binary
 gomap
 
+# Ignore the .vscode directory
+.vscode/
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
