@@ -47,5 +47,6 @@ changelog:
 
 dockers:
   - image_templates:
+    - "0nisec/gomap:latest"
     - "0nisec/gomap:{{ .Version }}"
   - skip_push: false
