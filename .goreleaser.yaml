@@ -46,10 +46,11 @@ changelog:
       - "^test:"
 
 dockers:
-   image_templates:
-      - "0nisec/gomap:{{ .Version }}"
-    goos:
-     - linux
-     - windows
-     - darwin
-    skip_push: false
+  -
+  image_templates:
+    - "0nisec/gomap:{{ .Version }}"
+  goos:
+    - linux
+    - windows
+    - darwin
+  skip_push: false
