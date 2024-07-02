@@ -48,6 +48,13 @@ func main() {
 				Usage:   "Output file",
 			},
 		},
+		Before: func(c *cli.Context) error {
+			if !c.Bool("quiet") {
+				PrintBanner()
+				ScanInfo(c)
+			}
+			return nil
+		},
 		Action: gomapcli.Runner,
 	}
 
