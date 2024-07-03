@@ -3,7 +3,9 @@ package gomapcli
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -98,38 +100,47 @@ func ParseTarget(target string) (string, error) {
 }
 
 // ParsePorts parses the ports string and returns a slice of integers
-func ParsePorts(ports string) ([]int, error) {
-	before, after, found := strings.Cut(ports, "-")
-	portRange := []int{}
+func ParsePorts(portStr string) ([]int, error) {
+	var result []int
+	parts := strings.Split(portStr, ",")
 
-	if found {
-		before, err := strconv.Atoi(before)
+	// Iterate over the parts and parse them
+	for _, part := range parts {
+		if strings.Contains(part, "-") {
 
-		if err != nil {
-			return nil, fmt.Errorf("error converting 'before' part of range '%d' to int: %w", before, err)
+			// Split the range into two parts
+			rangeParts := strings.Split(part, "-")
+
+			// Parse the start of the range
+			start, err := strconv.Atoi(strings.TrimSpace(rangeParts[0]))
+			if err != nil {
+				log.Fatalf("Invalid start port: found %s, but expected in form %s", rangeParts, "start-end")
+			}
+
+			// Parse the end of the range
+			end, err := strconv.Atoi(strings.TrimSpace(rangeParts[1]))
+			if err != nil {
+				log.Fatalf("Invalid end port: found %s, but expected in form %s", rangeParts, "start-end")
+			}
+
+			for i := start; i <= end; i++ {
+				result = append(result, i)
+			}
+
+		} else {
+			port, err := strconv.Atoi(strings.TrimSpace(part))
+			if err != nil {
+				log.Fatalf("Invalid port: %s", part)
+			}
+
+			result = append(result, port)
 		}
-
-		after, err := strconv.Atoi(after)
-
-		if err != nil {
-			return nil, fmt.Errorf("error converting 'before' part of range '%d' to int: %w", after, err)
-		}
-
-		for i := before; i <= after; i++ {
-			portRange = append(portRange, i)
-		}
-
-		return portRange, nil
-
-	} else {
-		singlePort, err := strconv.Atoi(ports)
-
-		if err != nil {
-			return nil, fmt.Errorf("error converting single port '%d' to int: %w", singlePort, err)
-		}
-
-		return []int{singlePort}, nil
 	}
+
+	// Sort the ports in ascending order
+	sort.Ints(result)
+
+	return result, nil
 }
 
 // ScanPorts scans the provided ports on the target and prints the results

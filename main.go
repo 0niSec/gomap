@@ -11,20 +11,13 @@ import (
 
 func main() {
 	app := &cli.App{
-		Name:      "gomap",
-		Usage:     "The lightweight, thin Go port scanning tool",
-		Version:   "0.1.0",
-		Copyright: "(c) 2024 0niSec. All rights reserved.",
-		Authors: []*cli.Author{
-			&cli.Author{
-				Name: "0niSec",
-			},
-		},
+		Name:  "gomap",
+		Usage: "The Go port scanner",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "ports",
 				Aliases: []string{"p"},
-				Usage:   "Port ranges to scan",
+				Usage:   "Port ranges to scan (e.g. 80,443,8000-8100)",
 			},
 			&cli.BoolFlag{
 				Name:    "quiet",
@@ -55,7 +48,8 @@ func main() {
 			}
 			return nil
 		},
-		Action: gomapcli.Runner,
+		Action:               gomapcli.Runner,
+		EnableBashCompletion: true,
 	}
 
 	if err := app.Run(os.Args); err != nil {
