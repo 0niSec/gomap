@@ -31,3 +31,6 @@ go.work
 go.work.sum
 
 dist/
+
+// Ignore testing pcap files saved in the project dir
+*.pcap*
