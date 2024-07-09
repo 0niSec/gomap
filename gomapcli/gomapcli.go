@@ -3,7 +3,9 @@ package gomapcli
 
 import (
 	"fmt"
+	"net"
 
+	"github.com/0niSec/gomap/scanner"
 	"github.com/urfave/cli/v2"
 )
 
@@ -16,7 +18,8 @@ func Runner(c *cli.Context) error {
 			return fmt.Errorf("error parsing target: %w", err)
 		}
 
-		ScanPorts(Top1000Ports[:], target, c.Duration("timeout"))
+		// TODO: Add new Scan function
+		fmt.Printf("Target: %s", target)
 
 		return nil
 	}
@@ -28,12 +31,17 @@ func Runner(c *cli.Context) error {
 	}
 
 	// Parse the target from the command line
-	target, err := ParseTarget(c.String("target"))
-	if err != nil {
-		return fmt.Errorf("error parsing target: %w", err)
-	}
+	// target, err := ParseTarget(c.String("target"))
+	// if err != nil {
+	// 	return fmt.Errorf("error parsing target: %w", err)
+	// }
 
-	ScanPorts(ports, target, c.Duration("timeout"))
+	// ?
+	// TODO: Implement function for obtaining the IP address of the interface
+	results := scanner.Scan(net.ParseIP("192.168.250.57"), net.ParseIP(c.String("target")), ports, c.Duration("timeout"))
+	for _, result := range results {
+		fmt.Println(result)
+	}
 
 	return nil
 }
