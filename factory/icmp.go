@@ -8,9 +8,9 @@ import (
 	"golang.org/x/net/ipv4"
 )
 
-// ConstructICMPPacket constructs an ICMP packet and returns the bytes
+// CreateICMPPacket constructs an ICMP packet and returns the bytes
 // Uses the [net/ipv4] and [net/icmp] packages
-func ConstructICMPPacket() ([]byte, error) {
+func CreateICMPPacket() ([]byte, error) {
 	// Create a new ICMP message by constructing the message struct
 	// https://pkg.go.dev/golang.org/x/net/icmp#Message
 	message := icmp.Message{
