@@ -1,7 +1,6 @@
 package gomapcli
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -26,7 +25,7 @@ func SendICMPRequest(target string, timeout time.Duration) (bool, error) {
 
 	// Construct the ICMP message
 	// ? Don't we want the caller ConstructICMPPacket to handle any errors that go wrong? Why do we need an error here?
-	messageBytes, err := factory.ConstructICMPPacket()
+	messageBytes, err := factory.CreateICMPPacket()
 	if err != nil {
 		return false, fmt.Errorf("error constructing ICMP message: %v", err)
 	}
@@ -100,8 +99,8 @@ func ParseTarget(target string) (string, error) {
 }
 
 // ParsePorts parses the ports string and returns a slice of integers
-func ParsePorts(portStr string) ([]int, error) {
-	var result []int
+func ParsePorts(portStr string) ([]uint16, error) {
+	var result []uint16
 	parts := strings.Split(portStr, ",")
 
 	// Iterate over the parts and parse them
@@ -124,7 +123,7 @@ func ParsePorts(portStr string) ([]int, error) {
 			}
 
 			for i := start; i <= end; i++ {
-				result = append(result, i)
+				result = append(result, uint16(i))
 			}
 
 		} else {
@@ -133,75 +132,12 @@ func ParsePorts(portStr string) ([]int, error) {
 				log.Fatalf("Invalid port: %s", part)
 			}
 
-			result = append(result, port)
+			result = append(result, uint16(port))
 		}
 	}
 
 	// Sort the ports in ascending order
-	sort.Ints(result)
+	sort.Slice(result, func(i, j int) bool { return result[i] < result[j] })
 
 	return result, nil
-}
-
-// ScanPorts scans the provided ports on the target and prints the results
-func ScanPorts(ports []int, target string, timeout time.Duration) {
-	// Get the current time and format it
-	// https://pkg.go.dev/time#Time.Format
-	startTime := time.Now().Local().Format("2006-01-02 15:04:05")
-	openPorts := []int{}
-	filteredPorts := []int{}
-	closedPorts := []int{}
-
-	fmt.Printf("Starting gomap at %s on target %s\n", startTime, target)
-
-	SendICMPRequest(target, timeout)
-
-	// Iterate over the ports and scan them
-	for _, port := range ports {
-		// Construct the address to pass into DialTimeout
-		// DialTimeout accepts a string in the format "host:port"
-		address := fmt.Sprintf("%s:%d", target, port)
-		conn, err := net.DialTimeout("tcp", address, timeout)
-
-		// Check if the error is a timeout error
-		var netErr net.Error
-		if errors.As(err, &netErr) && netErr.Timeout() {
-			filteredPorts = append(filteredPorts, port)
-			continue
-		} else if err != nil {
-			closedPorts = append(closedPorts, port)
-			continue
-		} else {
-			openPorts = append(openPorts, port)
-			conn.Close()
-		}
-
-	}
-
-	// TODO: The way we determine the port is filtered at the moment is technically incorrect
-	// I'd need to build a more robust way to determine if a port is filtered
-
-	// Print the closed ports
-	if len(closedPorts) > 0 {
-		fmt.Printf("Not shown: %d closed tcp ports\n", len(closedPorts))
-	}
-
-	// Print the filtered ports
-	if len(filteredPorts) > 0 {
-		fmt.Printf("%d filtered ports\n", len(filteredPorts))
-	}
-
-	// Print the open ports
-	if len(openPorts) == 0 {
-		fmt.Println("No open ports found")
-		return
-	} else {
-		fmt.Printf("%-10s %-10s %-10s\n", "PORT", "STATE", "SERVICE")
-
-		for _, port := range openPorts {
-			fmt.Printf("%-10s %-10s\n", fmt.Sprintf("%d/tcp", port), "open")
-		}
-	}
-
-	fmt.Printf("\ngomap completed at %s.\n", time.Now().Local().Format("2006-01-02 15:04:05"))
 }
