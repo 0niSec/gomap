@@ -38,8 +38,9 @@ func Runner(c *cli.Context) error {
 
 	// ?
 	// TODO: Implement function for obtaining the IP address of the interface
-	results := scanner.Scan(net.ParseIP("192.168.250.57"), net.ParseIP(c.String("target")), ports, c.Duration("timeout"))
+	results := scanner.Scan(net.ParseIP("192.168.113.57"), net.ParseIP(c.String("target")), ports, c.Duration("timeout"))
 	for _, result := range results {
+		fmt.Println("Back in gomapcli")
 		fmt.Println(result)
 	}
 

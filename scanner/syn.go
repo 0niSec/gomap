@@ -3,15 +3,16 @@ package scanner
 import (
 	"fmt"
 	"net"
+	"sync"
 	"syscall"
 	"time"
 
 	"github.com/0niSec/gomap/factory"
 	"github.com/0niSec/gomap/logger"
 	"github.com/0niSec/gomap/network"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
-	"github.com/google/gopacket/pcap"
+	"github.com/gopacket/gopacket"
+	"github.com/gopacket/gopacket/layers"
+	"github.com/gopacket/gopacket/pcap"
 )
 
 // SendSYNPacket sends a raw TCP SYN packet with the provided packet data, source IP, and destination IP.
@@ -63,7 +64,7 @@ func SendSYNPacket(packetData []byte, srcIP, dstIP net.IP) error {
 // ReadSYNACKResponse reads the response to a SYN packet sent to the specified destination IP and port, and returns the status of the port (open, closed, or filtered).
 // It uses a PCAP handle to capture packets on the appropriate network interface, and applies a BPF filter to only capture relevant TCP packets.
 // The function will block until a response is received or the specified timeout is reached, at which point it will return "filtered" if no response was received.
-func ReadSYNACKResponse(srcIP net.IP, dstIP net.IP, srcPort, dstPort uint16, timeout time.Duration) (string, error) {
+func ReadSYNACKResponse(srcIP net.IP, dstIP net.IP, srcPort, dstPort uint16, timeout time.Duration, wg *sync.WaitGroup) (string, error) {
 	logger.Debug("Starting ReadSYNACKResponse", "srcIP", srcIP, "srcPort", srcPort, "dstIP", dstIP, "dstPort", dstPort)
 
 	// Find the appropriate interface
@@ -148,6 +149,7 @@ func Scan(srcIP, dstIP net.IP, ports []uint16, timeout time.Duration) map[uint16
 		return nil
 	}
 
+	var wg sync.WaitGroup
 	results := make(map[uint16]string)
 	resultChan := make(chan struct {
 		port   uint16
@@ -155,7 +157,10 @@ func Scan(srcIP, dstIP net.IP, ports []uint16, timeout time.Duration) map[uint16
 	})
 
 	for _, dstPort := range ports {
+		wg.Add(1)
 		go func(dstPort uint16) {
+			defer wg.Done()
+			logger.Debug("Starting goroutine", "dstPort", dstPort)
 			// Create the SYN Packet
 			packetData, _, _, err := factory.CreateSYNPacket(srcIP, dstIP, srcPort, dstPort)
 			if err != nil {
@@ -178,13 +183,14 @@ func Scan(srcIP, dstIP net.IP, ports []uint16, timeout time.Duration) map[uint16
 				return
 			}
 
-			status, err := ReadSYNACKResponse(srcIP, dstIP, srcPort, dstPort, timeout)
+			status, err := ReadSYNACKResponse(srcIP, dstIP, srcPort, dstPort, timeout, &wg)
 			if err != nil {
 				logger.Error("Failed to read SYN/ACK response", "err", err)
 				resultChan <- struct {
 					port   uint16
 					status string
 				}{dstPort, "error"}
+				fmt.Println("done reading")
 				return
 			}
 
@@ -195,13 +201,15 @@ func Scan(srcIP, dstIP net.IP, ports []uint16, timeout time.Duration) map[uint16
 		}(dstPort)
 	}
 
+	wg.Wait()
+
 	for range ports {
-		result := <-resultChan
+		result, ok := <-resultChan
+		fmt.Println("result", result, "ok", ok)
 		results[result.port] = result.status
 	}
 
-	// ? Not sure if this is necessary
-	factory.ReleasePort(srcPort)
+	fmt.Println("We made it past the for loop in Scan! Huzzah!")
 
 	return results
 }

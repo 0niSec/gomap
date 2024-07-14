@@ -3,15 +3,15 @@ module github.com/0niSec/gomap
 go 1.22.4
 
 require (
-	github.com/charmbracelet/lipgloss v0.11.0
-	github.com/google/gopacket v1.1.19
+	github.com/charmbracelet/lipgloss v0.11.1
+	github.com/gopacket/gopacket v1.2.0
 	github.com/urfave/cli/v2 v2.27.2
 	golang.org/x/net v0.27.0
 )
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/charmbracelet/x/ansi v0.1.2 // indirect
+	github.com/charmbracelet/x/ansi v0.1.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

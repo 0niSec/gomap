@@ -5,8 +5,8 @@ import (
 	"net"
 
 	"github.com/0niSec/gomap/logger"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
+	"github.com/gopacket/gopacket"
+	"github.com/gopacket/gopacket/layers"
 )
 
 // ? We may not need this after all
