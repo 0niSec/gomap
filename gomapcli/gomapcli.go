@@ -3,6 +3,7 @@ package gomapcli
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/0niSec/gomap/network"
 	"github.com/0niSec/gomap/scanner"
@@ -10,6 +11,8 @@ import (
 )
 
 func Runner(c *cli.Context) error {
+	// Start time
+	startTime := time.Now()
 
 	iface, err := network.GetValidInterface()
 	if err != nil {
@@ -30,10 +33,18 @@ func Runner(c *cli.Context) error {
 	// If the ports flag is not set, scan the top 1000 ports by default
 	// We only need to parse the target in this case since the ports are already in the proper format
 	if c.String("ports") == "" {
-		results := scanner.Scan(srcIP, target, Top1000Ports, c.Duration("timeout"))
-		for _, result := range results {
-			fmt.Println(result)
+		results, err := scanner.Scan(srcIP, target, Top1000Ports, c.Duration("timeout"))
+		if err != nil {
+			return fmt.Errorf("error scanning ports: %w", err)
 		}
+
+		// End time and duration
+		endTime := time.Now()
+		duration := endTime.Sub(startTime).Seconds()
+
+		scanner.PrettyPrintScanResults(results)
+
+		fmt.Printf("Scan completed in %.2f seconds\n", duration)
 
 		return nil
 	}
@@ -44,10 +55,18 @@ func Runner(c *cli.Context) error {
 		return fmt.Errorf("error parsing ports: %w", err)
 	}
 
-	results := scanner.Scan(srcIP, target, ports, c.Duration("timeout"))
-	for _, result := range results {
-		fmt.Println(result)
+	results, err := scanner.Scan(srcIP, target, ports, c.Duration("timeout"))
+	if err != nil {
+		return fmt.Errorf("error scanning ports: %w", err)
 	}
+
+	// End time and duration
+	endTime := time.Now()
+	duration := endTime.Sub(startTime).Seconds()
+
+	scanner.PrettyPrintScanResults(results)
+
+	fmt.Printf("Scan completed in %.2f seconds\n", duration)
 
 	return nil
 }

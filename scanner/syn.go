@@ -138,11 +138,25 @@ func ReadSYNACKResponse(srcIP net.IP, dstIP net.IP, srcPort, dstPort uint16, tim
 // It sends a SYN packet to each destination port and waits for a response.
 // The function returns a map of port statuses, where the key is the port number and the value is the status ("open", "closed", "filtered", or "error").
 // The scan will timeout after the specified duration.
-func Scan(srcIP, dstIP net.IP, ports []uint16, timeout time.Duration) map[uint16]string {
+func Scan(srcIP, dstIP net.IP, ports []uint16, timeout time.Duration) (map[uint16]string, error) {
+	now := time.Now().Local()
+	date := time.Now().Format("2006-01-02")
+	fmt.Printf("Starting gomap at %s %02d:%02d:%02d\n", date, now.Hour(), now.Minute(), now.Second())
+	fmt.Println("Gomap scan report for", dstIP.String())
+
+	// Send ICMP Request to Target
+	alive, err := factory.SendICMPRequest(dstIP)
+	if err != nil {
+		return nil, fmt.Errorf("error sending ICMP request: %w", err)
+	}
+	if !alive {
+		return nil, fmt.Errorf("target is not alive")
+	}
+
 	srcPort, err := factory.GenerateRandomPort()
 	if err != nil {
 		logger.Error("Failed to generate random port", "err", err)
-		return nil
+		return nil, fmt.Errorf("error generating random port: %w", err)
 	}
 
 	results := make(map[uint16]string)
@@ -202,5 +216,7 @@ func Scan(srcIP, dstIP net.IP, ports []uint16, timeout time.Duration) map[uint16
 		results[result.port] = result.status
 	}
 
-	return results
+	// TODO: Sort the results by port number
+
+	return results, nil
 }
