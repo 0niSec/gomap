@@ -12,6 +12,24 @@ import (
 	"github.com/gopacket/gopacket/pcap"
 )
 
+func GetInterfaceIPAddress(iface *net.Interface) (net.IP, error) {
+	addrs, err := iface.Addrs()
+	if err != nil {
+		logger.Error("Failed to get interface addresses", "err", err)
+		return nil, fmt.Errorf("error getting interface addresses: %w", err)
+	}
+
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok {
+			if ip4 := ipnet.IP.To4(); ip4 != nil {
+				return ip4, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("no IPv4 address found for interface %s", iface.Name)
+}
+
 // GetValidInterface returns a valid interface used for packet sending and capture
 func GetValidInterface() (*net.Interface, error) {
 	interfaces, err := net.Interfaces()
