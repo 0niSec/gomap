@@ -16,7 +16,7 @@ func init() {
 	once.Do(func() {
 		// Create a JSON handler for structured logging
 		handler := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-			Level: slog.LevelDebug, // Set default level to Info
+			Level: slog.LevelInfo, // Set default level to Info
 		})
 
 		logger = slog.New(handler)
