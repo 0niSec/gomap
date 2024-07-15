@@ -3,20 +3,48 @@ package gomapcli
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/0niSec/gomap/network"
+	"github.com/0niSec/gomap/scanner"
 	"github.com/urfave/cli/v2"
 )
 
 func Runner(c *cli.Context) error {
+	// Start time
+	startTime := time.Now()
+
+	iface, err := network.GetValidInterface()
+	if err != nil {
+		return fmt.Errorf("error getting valid interface: %w", err)
+	}
+
+	// Get IP Address for interface
+	srcIP, err := network.GetInterfaceIPAddress(iface)
+	if err != nil {
+		return fmt.Errorf("error getting interface IP address: %w", err)
+	}
+
+	target, err := ParseTarget(c.String("target"))
+	if err != nil {
+		return fmt.Errorf("error parsing target: %w", err)
+	}
+
 	// If the ports flag is not set, scan the top 1000 ports by default
-	// We only need to parse the target in this case ince the ports are already in the proper format
+	// We only need to parse the target in this case since the ports are already in the proper format
 	if c.String("ports") == "" {
-		target, err := ParseTarget(c.String("target"))
+		results, err := scanner.Scan(srcIP, target, Top1000Ports, c.Duration("timeout"))
 		if err != nil {
-			return fmt.Errorf("error parsing target: %w", err)
+			return fmt.Errorf("error scanning ports: %w", err)
 		}
 
-		ScanPorts(Top1000Ports[:], target, c.Duration("timeout"))
+		// End time and duration
+		endTime := time.Now()
+		duration := endTime.Sub(startTime).Seconds()
+
+		scanner.PrettyPrintScanResults(results)
+
+		fmt.Printf("Scan completed in %.2f seconds\n", duration)
 
 		return nil
 	}
@@ -27,13 +55,18 @@ func Runner(c *cli.Context) error {
 		return fmt.Errorf("error parsing ports: %w", err)
 	}
 
-	// Parse the target from the command line
-	target, err := ParseTarget(c.String("target"))
+	results, err := scanner.Scan(srcIP, target, ports, c.Duration("timeout"))
 	if err != nil {
-		return fmt.Errorf("error parsing target: %w", err)
+		return fmt.Errorf("error scanning ports: %w", err)
 	}
 
-	ScanPorts(ports, target, c.Duration("timeout"))
+	// End time and duration
+	endTime := time.Now()
+	duration := endTime.Sub(startTime).Seconds()
+
+	scanner.PrettyPrintScanResults(results)
+
+	fmt.Printf("Scan completed in %.2f seconds\n", duration)
 
 	return nil
 }
