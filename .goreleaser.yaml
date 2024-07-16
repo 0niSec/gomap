@@ -18,6 +18,7 @@ before:
 builds:
   - env:
       - CGO_ENABLED=1
+      - CC=musl-gcc
     goos:
       - linux
 
