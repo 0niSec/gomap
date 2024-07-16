@@ -11,10 +11,10 @@ permissions:
 
 jobs:
   release:
-    runs-on: alpine-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Install libpcap-dev
-        run: sudo apk add libpcap-dev build-base
+        run: sudo apt-get install libpcap-dev build-base
       - name: Docker Login
         uses: docker/login-action@v3.2.0
         with: 
