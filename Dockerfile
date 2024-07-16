@@ -1,4 +1,3 @@
-# Stage 1
 FROM golang:1.22.5-alpine3.20 AS build
 RUN apk add libpcap-dev build-base
 WORKDIR /build/src
