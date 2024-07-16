@@ -24,3 +24,9 @@ jobs:
       -
         name: Build gomap
         run: CGO_ENABLED=1 go build -ldflags "-s -w -linkmode external -extldflags='-static'" -o gomap .
+      - 
+        name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace_artifacts
+          path: ${{ github.workspace }}
