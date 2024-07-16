@@ -24,6 +24,9 @@ builds:
     goarch:
       - amd64
 
+    ldflags:
+      - -s -w -linkmode external -extldflags "-static"
+
 archives:
   - format: tar.gz
     # this name template makes the OS and Arch compatible with the results of `uname`.
