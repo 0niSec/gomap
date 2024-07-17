@@ -4,9 +4,11 @@
 - [:eyes: What Is This?](#eyes-what-is-this)
 - [:sparkles: Features](#sparkles-features)
 - [:computer: Installation](#computer-installation)
-  - [Downloading \& Installing Go](#downloading--installing-go)
-  - [Go CLI](#go-cli)
+  - [:exclamation: Important Note](#exclamation-important-note)
   - [Standalone Binary](#standalone-binary)
+    - [Alternative - Go CLI](#alternative---go-cli)
+      - [Downloading \& Installing Go](#downloading--installing-go)
+      - [Installing Gomap](#installing-gomap)
   - [:whale: Docker](#whale-docker)
 - [Usage](#usage)
   - [:penguin: Linux](#penguin-linux)
@@ -26,19 +28,37 @@ Gomap does not aim to replace `nmap` or `RustScan`, but rather be a coexisting p
 
 - Faster alternative to `nmap`
 - [Goroutines](https://go.dev/doc/effective_go#goroutines) for faster runtimes
+- Utilizes TCP SYN scanning methods for fast results. See more information on the topic and how `nmap` does it [here]("https://nmap.org/book/synscan.html")
 - Service fingerprinting (not yet implemented)
 - OS fingerprinting (wishlist)
 
 # :computer: Installation
 
-## Downloading & Installing Go
+## :exclamation: Important Note
+
+<font color="red">
+Gomap was built with Linux in mind since as a penetration testing tool, the typical demographic OS is some form of Linux. With that being said, Gomap <strong>will not work on Windows or Mac</strong>.
+</font>
+
+<br />
+Gomap was developed on 64-bit Kali Linux. It should work on other Linux distros, but I haven't tested it.
+
+## Standalone Binary
+
+Standalone binaries can be downloaded from the [releases](https://github.com/0niSec/gomap/releases) page. You may also use the Go CLI following the below steps.
+
+### Alternative - Go CLI
+
+While I do provide the binary through Github, the binary can also be installed through the Go CLI. For this method, you will need to have Go installed.
+
+#### Downloading & Installing Go
 
 To download Go, follow the instructions at Golang's own website, [here](https://go.dev/dl). Then follow the [install instructions](https://go.dev/doc/install) for your OS.
 
 > [!NOTE]
 > Linux users can also install via their package manager  (e.g.`apt install golang-go`). This does not appear to be present on Go's website, but it's how I installed it and have had no issues with Kali. YMMV depending on distro.
 
-## Go CLI
+#### Installing Gomap
 
 To install Gomap, you can use the Go CLI:
 
@@ -46,14 +66,7 @@ To install Gomap, you can use the Go CLI:
 go install github.com/0niSec/gomap@latest
 ```
 
-## Standalone Binary
-
-Standalone binaries can be downloaded from the [releases](https://github.com/0niSec/gomap/releases) page for Windows, Linux and MacOS. For other OS-specific methods, please see the corresponding section for your OS.
-
 ## :whale: Docker
-
-> [!WARNING]
-> The Dockerfile has been created and added and tested, but I have not yet published it to Docker Hub so these instructions will be valid, but **do not work yet.**
 
 Docker is used a lot nowadays and I wanted to include it as an option because:
 
@@ -69,39 +82,41 @@ docker pull 0niSec/gomap:latest
 
 # Usage
 
+> [!WARNING]
+> Gomap requires elevated privileges to run. This is due to the fact that it uses raw sockets to send and receive packets. Any command will need to be run with `sudo`. If you want to be able to not enter a password, add your user to the sudoers file and specify NOPASSWD for gomap.
+
 ## :penguin: Linux
 
-Running on Linux is simple! With Gomap installed using `go install`, and the binary added to your PATH:
+Running on Linux is simple! With Gomap installed using `go install` or downloaded directly, and the binary added to your PATH:
 
 ```text
+NAME:
+   gomap - The Go port scanner
+
 USAGE:
    gomap [global options] command [command options] 
-
-VERSION:
-   0.1.0
-
-AUTHOR:
-   0niSec
 
 COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --ports value, -p value    Port ranges to scan
+   --ports value, -p value    Port ranges to scan (e.g. 80,443,8000-8100)
    --quiet, -q                Don't print the banner and other noise (default: false)
    --target value, -t value   The target to scan
    --timeout value, -T value  Timeout for the connection (default: 10s)
    --output value, -o value   Output file
    --help, -h                 show help
-   --version, -v              print the version
 ```
+
+> [!NOTE]
+> More flags and features will be added here as they are developed.
 
 ## :whale: Docker
 
-Running the binary using Docker is as easy as
+Running using Docker is as easy as
 
 ```bash
-docker run 0niSec/gomap -p <PORTS> -t <TARGET>
+docker run 0niSec/gomap -p <PORTS> -t <TARGET_IP>
 ```
 
 # :handshake: Contributing
