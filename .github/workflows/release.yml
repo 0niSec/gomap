@@ -22,11 +22,21 @@ jobs:
         with:
           fetch-depth: 0
       -
-        name: Build gomap
+        name: Build gomap artifact
         run: CGO_ENABLED=1 go build -ldflags "-s -w -linkmode external -extldflags='-static'" -o gomap .
       - 
         name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: workspace_artifacts
-          path: ${{ github.workspace }}
+          path: ${{ github.workspace }}/gomap
+      - 
+        name: GH Release
+        # You may pin to the exact commit or the version.
+        # uses: softprops/action-gh-release@a74c6b72af54cfa997e81df42d94703d6313a2d0
+        uses: softprops/action-gh-release@v2.0.6
+        with:
+          files: gomap
+          generate_release_notes: true
+          make_latest: true
+                
