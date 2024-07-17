@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     container: golang:alpine
     steps:
-      - name: Install libpcap-dev
-        run: apk add libpcap-dev build-base
+      - name: Install dependencies for building
+        run: apk add libpcap-dev build-base docker-cli
       -
         name: Checkout
         uses: actions/checkout@v4
