@@ -55,5 +55,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: user/app:latest
+          tags: 0nisec/gomap:latest
       
