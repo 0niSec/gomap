@@ -87,7 +87,7 @@ docker pull 0niSec/gomap:latest
 
 ## :penguin: Linux
 
-Running on Linux is simple! With Gomap installed using `go install` or downloaded directly, and the binary added to your PATH:
+Running on Linux is simple! With Gomap installed using `go install` or downloaded directly, and the binary added to your PATH (`go install` installs directly to `$GOPATH/bin`):
 
 ```text
 NAME:
