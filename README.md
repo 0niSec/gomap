@@ -26,11 +26,11 @@ Gomap does not aim to replace `nmap` or `RustScan`, but rather be a coexisting p
 
 # :sparkles: Features
 
-- Faster alternative to `nmap`
-- [Goroutines](https://go.dev/doc/effective_go#goroutines) for faster runtimes
+- [Goroutines](https://go.dev/doc/effective_go#goroutines) for fast runtimes
 - Utilizes TCP SYN scanning methods for fast results. See more information on the topic and how `nmap` does it [here]("https://nmap.org/book/synscan.html")
 - Service fingerprinting (not yet implemented)
-- OS fingerprinting (wishlist)
+- OS fingerprinting (not yet implemented)
+- Banner grabbing (not yet implemented)
 
 # :computer: Installation
 
