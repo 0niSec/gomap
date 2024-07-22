@@ -57,26 +57,23 @@ func SendSYNPacket(packetData []byte, srcIP, dstIP net.IP) error {
 	return nil
 }
 
-// ReadSYNACKResponse reads the response to a SYN packet sent to the specified destination IP and port, and returns the status of the port (open, closed, or filtered).
-// It uses a PCAP handle to capture packets on the appropriate network interface, and applies a BPF filter to only capture relevant TCP packets.
-// The function will block until a response is received or the specified timeout is reached, at which point it will return "filtered" if no response was received.
-func ReadSYNACKResponse(srcIP net.IP, dstIP net.IP, srcPort, dstPort uint16, timeout time.Duration) (string, error) {
-	logger.Debug("Starting ReadSYNACKResponse", "srcIP", srcIP, "srcPort", srcPort, "dstIP", dstIP, "dstPort", dstPort)
+// StartPacketCapture starts a packet capture on the specified source and destination IPs and ports.
+func StartPacketCapture(srcIP, dstIP net.IP, srcPort, dstPort uint16) (*pcap.Handle, func(), error) {
+	logger.Debug("Starting packet capture", "srcIP", srcIP, "srcPort", srcPort, "dstIP", dstIP, "dstPort", dstPort)
 
 	// Find the appropriate interface
 	iface, err := network.GetValidInterface()
 	if err != nil {
 		logger.Error("Failed to find interface", "err", err)
-		return "", fmt.Errorf("error finding interface: %w", err)
+		return nil, nil, fmt.Errorf("error finding interface: %w", err)
 	}
 
 	// Open the device for capturing
 	handle, err := pcap.OpenLive(iface.Name, 65536, true, 10*time.Millisecond)
 	if err != nil {
 		logger.Error("Failed to open device", "err", err)
-		return "", fmt.Errorf("error opening device: %w", err)
+		return nil, nil, fmt.Errorf("error opening device: %w", err)
 	}
-	defer handle.Close()
 
 	// Set BPF filter to only capture relevant packets for this specific port
 	filter := fmt.Sprintf("tcp and src host %s and src port %d and dst host %s and dst port %d",
@@ -84,9 +81,23 @@ func ReadSYNACKResponse(srcIP net.IP, dstIP net.IP, srcPort, dstPort uint16, tim
 	logger.Debug("Setting BPF filter", "filter", filter)
 	err = handle.SetBPFFilter(filter)
 	if err != nil {
+		handle.Close()
 		logger.Error("Failed to set BPF filter", "err", err)
-		return "", fmt.Errorf("error setting BPF filter: %w", err)
+		return nil, nil, fmt.Errorf("error setting BPF filter: %w", err)
 	}
+
+	cleanup := func() {
+		logger.Debug("Closing packet capture handle", "srcIP", srcIP, "srcPort", srcPort, "dstIP", dstIP, "dstPort", dstPort)
+		handle.Close()
+	}
+
+	return handle, cleanup, nil
+
+}
+
+// ProcessCapturedPacket processes the captured packet and returns the status of the connection.
+func ProcessCapturedPacket(handle *pcap.Handle, srcIP, dstIP net.IP, srcPort, dstPort uint16, timeout time.Duration) (string, error) {
+	logger.Debug("Processing captured packet", "srcIP", srcIP, "srcPort", srcPort, "dstIP", dstIP, "dstPort", dstPort)
 
 	// Create packet source
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
@@ -131,6 +142,7 @@ func ReadSYNACKResponse(srcIP net.IP, dstIP net.IP, srcPort, dstPort uint16, tim
 			logger.Debug("Timeout reached", "dstPort", dstPort)
 			return "filtered", nil
 		}
+
 	}
 }
 
@@ -168,6 +180,17 @@ func Scan(srcIP, dstIP net.IP, ports []uint16, timeout time.Duration) (map[uint1
 	for _, dstPort := range ports {
 		go func(dstPort uint16) {
 			logger.Debug("Starting goroutine", "dstPort", dstPort)
+			handle, cleanup, err := StartPacketCapture(srcIP, dstIP, srcPort, dstPort)
+			if err != nil {
+				logger.Error("Failed to start packet capture", "err", err)
+				resultChan <- struct {
+					port   uint16
+					status string
+				}{dstPort, "error"}
+				return
+			}
+			defer cleanup()
+
 			// Create the SYN Packet
 			packetData, _, _, err := factory.CreateSYNPacket(srcIP, dstIP, srcPort, dstPort)
 			if err != nil {
@@ -190,9 +213,9 @@ func Scan(srcIP, dstIP net.IP, ports []uint16, timeout time.Duration) (map[uint1
 				return
 			}
 
-			status, err := ReadSYNACKResponse(srcIP, dstIP, srcPort, dstPort, timeout)
+			status, err := ProcessCapturedPacket(handle, srcIP, dstIP, srcPort, dstPort, timeout)
 			if err != nil {
-				logger.Error("Failed to read SYN/ACK response", "err", err)
+				logger.Error("Failed to process captured packet", "err", err)
 				resultChan <- struct {
 					port   uint16
 					status string
