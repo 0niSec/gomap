@@ -12,7 +12,7 @@ var (
 	filteredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFEF00"))
 )
 
-func PrettyPrintScanResults(results map[uint16]string) {
+func PrettyPrintScanResults(results map[uint16]string, services map[uint16]string) {
 	fmt.Println(lipgloss.JoinHorizontal(lipgloss.Left,
 		lipgloss.NewStyle().Width(10).Render("PORT"),
 		lipgloss.NewStyle().Width(10).Render("PROTOCOL"),
@@ -22,11 +22,15 @@ func PrettyPrintScanResults(results map[uint16]string) {
 
 	for port, status := range results {
 		coloredStatus := getColoredStatus(status)
+		service := services[port]
+		if service == "" {
+			service = "unknown"
+		}
 		fmt.Println(lipgloss.JoinHorizontal(lipgloss.Left,
 			lipgloss.NewStyle().Width(10).Render(fmt.Sprintf("%d", port)),
-			lipgloss.NewStyle().Width(10).Render("tcp"),
+			lipgloss.NewStyle().Width(10).Render("tcp"), // ? We may want to change this if we ever implement UDP scanning
 			lipgloss.NewStyle().Width(10).Render(coloredStatus),
-			lipgloss.NewStyle().Width(10).Render(""),
+			lipgloss.NewStyle().Width(10).Render(service),
 		))
 	}
 	// Add a blank line to separate the results
@@ -45,19 +49,3 @@ func getColoredStatus(status string) string {
 		return status
 	}
 }
-
-// func PrettyPrintScanResults(results map[uint16]string) {
-// 	fmt.Printf("%-10s %-10s %-10s %-10s\n", "PORT", "PROTOCOL", "STATE", "SERVICE")
-// 	for port, result := range results {
-// 		coloredStatus := result
-// 		switch result {
-// 		case "open":
-// 			coloredStatus = openStyle.Render(result)
-// 		case "closed":
-// 			coloredStatus = closedStyle.Render(result)
-// 		case "filtered":
-// 			coloredStatus = filteredStyle.Render(result)
-// 		}
-// 		fmt.Printf("%-10d %-10s %-10s %-10s\n", port, "tcp", coloredStatus, "http")
-// 	}
-// }
