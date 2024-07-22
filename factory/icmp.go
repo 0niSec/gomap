@@ -65,7 +65,7 @@ func SendICMPRequest(target net.IP) (bool, error) {
 
 	// Write the ICMP message to the connection
 	// https://pkg.go.dev/golang.org/x/net/icmp#PacketConn.WriteTo
-	if _, err := conn.WriteTo(messageBytes, &net.IPAddr{IP: target}); err != nil {
+	if _, err := conn.WriteTo(messageBytes, &net.IPAddr{IP: target.To4()}); err != nil {
 		return false, fmt.Errorf("error writing ICMP message: %v", err)
 	}
 
